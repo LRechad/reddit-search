@@ -103,7 +103,36 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"index.js":[function(require,module,exports) {
+})({"reddit-api.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var search = function search(searchTerm, sortBy, searchLimit) {
+    return fetch("http://www.reddit.com/search.json?q=" + searchTerm + "&sort=" + sortBy + "&limit=" + searchLimit).then(function (res) {
+        return res.json();
+    }).then(function (data) {
+        return data.data.children.map(function (data) {
+            return data.data;
+        });
+    }).catch(function (err) {
+        return console.log(err);
+    });
+};
+
+exports.default = {
+    search: search
+};
+},{}],"index.js":[function(require,module,exports) {
+'use strict';
+
+var _redditApi = require('./reddit-api');
+
+var _redditApi2 = _interopRequireDefault(_redditApi);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var searchForm = document.querySelector('#search-form');
 var searchInput = document.querySelector('#search-input');
 
@@ -123,6 +152,12 @@ var showMessage = function showMessage(message, className) {
     }, 3000);
 };
 
+var truncateText = function truncateText(text, limit) {
+    var shortened = text.indexOf(' ', limit);
+    if (shortened === -1) return text;
+    return text.substring(0, shortened);
+};
+
 // Form event listener
 searchForm.addEventListener('submit', function (e) {
     var searchTerm = searchInput.value;
@@ -133,9 +168,22 @@ searchForm.addEventListener('submit', function (e) {
         showMessage('Please add a search term', 'alert-danger');
     }
 
+    // searchInput.value = ''; // Clear input after a search
+    _redditApi2.default.search(searchTerm, sortBy, searchLimit).then(function (res) {
+        var output = '<div class="card-columns">';
+        res.forEach(function (post) {
+            // Check for image
+            var image = post.preview ? post.preview.images[0].source.url : 'http://media.gizmodo.co.uk/wp-content/uploads/2016/11/ytzaorwdu0e7byvs7zmn.jpg';
+
+            output += '\n                <div class="card">\n                <img class="card-img-top" src="' + image + '" alt="Card image cap">\n                <div class="card-body">\n                  <h5 class="card-title">' + post.title + '</h5>\n                  <p class="card-text">' + truncateText(post.selftext, 100) + '</p>\n                  <a href="' + post.url + '" target="_blank" class="btn btn-primary">Read more</a>\n                  <hr>\n                  <span class="badge badge-secondary">Subreddit: ' + post.subreddit + '</span>\n                  <span class="badge badge-dark">Score :' + post.score + ' </span>\n                  </div>\n                </div>\n                ';
+        });
+        output += '</div>';
+        document.querySelector('#results').innerHTML = output;
+    });
+
     e.preventDefault();
 });
-},{}],"../../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./reddit-api":"reddit-api.js"}],"../../../../../usr/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 
@@ -164,7 +212,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '41701' + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '43399' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
